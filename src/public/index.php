@@ -7,14 +7,14 @@ if ( isset( $_GET['action'] ) ) {
 
   $response = false;
   switch( $_GET['action'] ) {
-    case 'getNextPhoto':
+    case 'checkPhotoUpdate':
 
       $photos_sync = file_get_contents( __DIR__ . '/sync/photo.json' );
       if ( false !== $photos_sync ) {
         $photos_sync = json_decode( $photos_sync );
 
         $response = (object)[ 'filename' => $photos_sync->filename ];
-        if ( !isset( $_GET['currentPhoto'] ) || $_GET['currentPhoto'] !== $photos_sync->filename ) {
+        if ( !isset( $_GET['photoLast'] ) || $_GET['photoLast'] !== $photos_sync->filename ) {
           $response->src = $photos_sync->src;
         }
 
@@ -62,7 +62,7 @@ $photos_first_src = $photos_sync->src;
 <link rel="manifest" href="/frame-sync.webmanifest">
 <link rel="icon" sizes="192x192" type="image/png" href="./favicon.png">
 
-<title>Pandyra Family Synchronized Photo Frame</title>
+<title>Synchronized Photo Frame</title>
 
 <style>
 
@@ -174,7 +174,7 @@ var frameData = {
   photoUpdated: false,
   photoUpdate: function() {
 
-    fetch( './index.php?action=getNextPhoto&currentPhoto=' + encodeURIComponent( frameData.photoLast ) )
+    fetch( './index.php?action=checkPhotoUpdate&photoLast=' + encodeURIComponent( frameData.photoLast ) )
     .then( function( response ) {
       return response.json();
     } )
@@ -190,7 +190,7 @@ var frameData = {
         } else {
 
           frameData.photoLast = result.filename;
-          frameData.photoUpdated = true;
+          frameData.photoUpdated = result.src;
 
         }
 
@@ -270,19 +270,17 @@ var frameData = {
   },
   render: function() {
     
-    if ( true === frameData.photoUpdated ) {
-
-      frameData.photoUpdated = false;
+    if ( false !== frameData.photoUpdated ) {
 
       var nextPhoto = new Image(), last = document.querySelector( 'div.wrapper.last' ), active = document.querySelector( 'div.wrapper.active' );
       nextPhoto.addEventListener( 'load', function() { 
-
         setTimeout( function() {
           frameData.photoUpdate();
         }, 5000 );
-
       } );
-      nextPhoto.src = result.src;
+      nextPhoto.src = frameData.photoUpdated;
+      frameData.photoUpdated = false;
+      
       frameData.preload.appendChild( nextPhoto );
 
       last.style.display = 'none';
@@ -308,12 +306,12 @@ var frameData = {
       }, 125 );
     }
     
-    if ( true === frameData.timeUpdated ) {
+    if ( false !== frameData.timeUpdated ) {
       frameData.timeUpdated = false;
       frameData.time.innerHTML = frameData.timeLast;
     }
     
-    if ( true === frameData.weatherUpdated ) {
+    if ( false !== frameData.weatherUpdated ) {
       frameData.weatherUpdated = false;
       frameData.weather.innerHTML = frameData.weatherLast;
     }
