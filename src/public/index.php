@@ -170,116 +170,78 @@ body {
 <script>
 
 var frameData = {
-  photoLast: <?php print json_encode( (string)$photos_first ); ?>,
-  photoUpdated: false,
-  photoUpdate: function() {
+  photo: {
+    last: <?php print json_encode( (string)$photos_first ); ?>,
+    updated: false,
+    update: function() {
 
-    fetch( './index.php?action=checkPhotoUpdate&photoLast=' + encodeURIComponent( frameData.photoLast ) )
-    .then( function( response ) {
-      return response.json();
-    } )
-    .then( function( result ) {
-      if ( result.filename ) {
+      fetch( './index.php?action=checkPhotoUpdate&photoLast=' + encodeURIComponent( frameData.photo.last ) )
+      .then( function( response ) {
+        return response.json();
+      } )
+      .then( function( result ) {
+        if ( result.filename ) {
 
-        if ( result.filename === frameData.photoLast ) {
+          if ( result.filename === frameData.photo.last ) {
 
-          setTimeout( function() {
-            frameData.photoUpdate();
-          }, 5000 );
+            setTimeout( function() {
+              frameData.photo.update();
+            }, 5000 );
 
-        } else {
+          } else {
 
-          frameData.photoLast = result.filename;
-          frameData.photoUpdated = result.src;
+            frameData.photo.last = result.filename;
+            frameData.photo.updated = result.src;
+
+          }
 
         }
-
-      }
-    } );
-  },
-  timeLast: '',
-  timeUpdated: false,
-  timeUpdate: function() {
-    var date = new Date();
-    var timeCurrent = date.getHours().toString() + ':' + date.getMinutes().toString().padStart( 2, '0' );
-
-    if ( timeCurrent !== frameData.timeLast ) {
-      frameData.timeLast = timeCurrent;
-      frameData.timeUpdated = true;
+      } );
     }
-    setTimeout( frameData.timeUpdate, 100 );
   },
-  weatherLast: '',
-  weatherUpdated: false,
-  weatherUpdate: function() {
-    fetch( './index.php?action=weatherUpdate' )
-    .then( function( response ) {
-      return response.json();
-    } )
-    .then( function( result ) {
-      if ( result.html !== frameData.weatherLast ) {
-        frameData.weatherLast = result.html;
-        frameData.weatherUpdated = true;
+  time: {
+    last: '',
+    updated: false,
+    update: function() {
+      var date = new Date();
+      var timeCurrent = date.getHours().toString() + ':' + date.getMinutes().toString().padStart( 2, '0' );
+
+      if ( timeCurrent !== frameData.time.last ) {
+        frameData.time.last = timeCurrent;
+        frameData.time.updated = true;
       }
-      setTimeout( frameData.weatherUpdate, 60000 );
-    } );
-  },
-  infoToggle: function() {
-    if ( frameData.info.classList.contains( 'hidden' ) ) frameData.info.classList.remove( 'hidden' );
-    else frameData.info.classList.add( 'hidden' );
-  },
-  fullscreenToggle: function() {
-    if ( document.fullscreenElement ) document.exitFullscreen();
-    else document.body.requestFullscreen();
-  },
-  tapCount: 0,
-  tapTimeout: undefined,
-  tapHandler: function() {
-
-    frameData.tapCount++;
-
-    if ( 'undefined' !== typeof frameData.tapTimeout ) {
-      clearTimeout( frameData.tapTimeout );
-      frameData.tapTimeout = undefined;
+      setTimeout( frameData.time.update, 100 );
     }
-
-    if ( 2 === frameData.tapCount ) {
-
-      frameData.fullscreenToggle();
-      frameData.tapCount = 0;
-
-    } else {
-
-      frameData.tapTimeout = setTimeout( function() {
-
-        switch ( frameData.tapCount ) {
-          case 1:
-            frameData.infoToggle();
-            break;
-          case 2:
-            frameData.fullscreenToggle();
-            break;
+  },
+  weather: {
+    last: '',
+    updated: false,
+    update: function() {
+      fetch( './index.php?action=weatherUpdate' )
+      .then( function( response ) {
+        return response.json();
+      } )
+      .then( function( result ) {
+        if ( result.html !== frameData.weather.last ) {
+          frameData.weather.last = result.html;
+          frameData.weather.updated = true;
         }
-        frameData.tapCount = 0;
-        frameData.tapTimeout = undefined;
-
-      }, 225 );
-
+        setTimeout( frameData.weather.update, 60000 );
+      } );
     }
-
   },
   render: function() {
     
-    if ( false !== frameData.photoUpdated ) {
+    if ( false !== frameData.photo.updated ) {
 
       var nextPhoto = new Image(), last = document.querySelector( 'div.wrapper.last' ), active = document.querySelector( 'div.wrapper.active' );
       nextPhoto.addEventListener( 'load', function() { 
         setTimeout( function() {
-          frameData.photoUpdate();
+          frameData.photo.update();
         }, 5000 );
       } );
-      nextPhoto.src = frameData.photoUpdated;
-      frameData.photoUpdated = false;
+      nextPhoto.src = frameData.photo.updated;
+      frameData.photo.updated = false;
       
       frameData.preload.appendChild( nextPhoto );
 
@@ -306,17 +268,63 @@ var frameData = {
       }, 125 );
     }
     
-    if ( false !== frameData.timeUpdated ) {
-      frameData.timeUpdated = false;
-      frameData.time.innerHTML = frameData.timeLast;
+    if ( false !== frameData.time.updated ) {
+      frameData.time.updated = false;
+      frameData.time.element.innerHTML = frameData.time.last;
     }
     
-    if ( false !== frameData.weatherUpdated ) {
-      frameData.weatherUpdated = false;
-      frameData.weather.innerHTML = frameData.weatherLast;
+    if ( false !== frameData.weather.updated ) {
+      frameData.weather.updated = false;
+      frameData.weather.element.innerHTML = frameData.weather.last;
     }
     
     window.requestAnimationFrame( frameData.render );
+  },
+  tap: {
+    count: 0,
+    timeout: undefined,
+    handler: function() {
+
+      frameData.tap.count++;
+
+      if ( 'undefined' !== typeof frameData.tap.timeout ) {
+        clearTimeout( frameData.tap.timeout );
+        frameData.tap.timeout = undefined;
+      }
+
+      if ( 2 === frameData.tap.count ) {
+
+        frameData.fullscreenToggle();
+        frameData.tap.count = 0;
+
+      } else {
+
+        frameData.tap.timeout = setTimeout( function() {
+
+          switch ( frameData.tap.count ) {
+            case 1:
+              frameData.infoToggle();
+              break;
+            case 2:
+              frameData.fullscreenToggle();
+              break;
+          }
+          frameData.tap.count = 0;
+          frameData.tap.timeout = undefined;
+
+        }, 225 );
+
+      }
+
+    }
+  },
+  infoToggle: function() {
+    if ( frameData.info.classList.contains( 'hidden' ) ) frameData.info.classList.remove( 'hidden' );
+    else frameData.info.classList.add( 'hidden' );
+  },
+  fullscreenToggle: function() {
+    if ( document.fullscreenElement ) document.exitFullscreen();
+    else document.body.requestFullscreen();
   }
 };
 
@@ -324,27 +332,27 @@ document.addEventListener( 'DOMContentLoaded', function() {
 
   frameData.preload = document.querySelector( 'div.preload' );
   setTimeout( function() {
-    frameData.photoUpdate();
+    frameData.photo.update();
   }, 5000 );
 
   frameData.info = document.querySelector( 'div.info' );
 
-  frameData.time = document.querySelector( 'div.time' );
-  frameData.timeUpdate();
+  frameData.time.element = document.querySelector( 'div.time' );
+  frameData.time.update();
 
-  frameData.weather = document.querySelector( 'div.weather' );
-  frameData.weatherUpdate();
+  frameData.weather.element = document.querySelector( 'div.weather' );
+  frameData.weather.update();
   
   window.requestAnimationFrame( frameData.render );
 
   document.body.addEventListener( 'click', function( e ) {
     e.preventDefault();
-    frameData.tapHandler();
+    frameData.tap.handler();
   } );
 
   document.body.addEventListener( 'touchstart', function( e ) {
     e.preventDefault();
-    frameData.tapHandler();
+    frameData.tap.handler();
   }, { passive: false } );
 
 } );
