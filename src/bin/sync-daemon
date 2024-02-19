@@ -1,0 +1,81 @@
+#!/opt/remi/php81/root/bin/php
+<?php
+
+ini_set('display_errors', 0 );
+error_reporting( 0 );
+
+$exec = true;
+$imagick = new \Imagick();
+
+$photos_sync = file_get_contents( __DIR__ . '/../public/sync/photo.json' );
+if ( false !== $photos_sync ) {
+  $photos_sync = json_decode( $photos_sync );
+  if ( is_null( $photos_sync ) || !is_object( $photos_sync ) ) $photos_sync = (object)[ 'ignore' => [] ];
+} else {
+  $photos_sync = (object)[ 'ignore' => [] ];
+}
+
+if ( !isset( $photos_sync->ignore ) || !is_array( $photos_sync->ignore ) ) $photos_sync->ignore = [];
+
+while ( true === $exec ) {
+
+  $exec = false;
+  $time_init = time();
+
+  $photos = [];
+  foreach( scandir( __DIR__ . '/../../photos/' ) as $filename ) {
+    if ( !preg_match( '/.jpe?g$/', $filename ) ) continue;
+    $photos[] = $filename;
+  }
+
+  if ( !empty( $photos ) ) {
+
+    if ( count( $photos_sync->ignore ) >= count( $photos ) ) {
+      $photos_sync->ignore = array_slice( $photos_sync->ignore, 0, count( $photos ) - 1 );
+    }
+
+    $options = [];
+    foreach( $photos as $filename ) {
+      if ( in_array( $filename, $photos_sync->ignore ) ) continue;
+      $options[] = $filename;
+    }
+
+    if ( !empty( $options ) ) {
+
+      $photos_sync->filename = $options[ array_rand( $options ) ];
+
+      print 'Processing "' . $photos_sync->filename . '" at ' . date( 'Y-m-d H:i:s', $time_init ) . "\n";
+
+      if ( file_exists( __DIR__ . '/../../photos/' . $photos_sync->filename . '.webp' ) ) {
+        $photos_sync->src = 'data:image/webp;base64,' . base64_encode( file_get_contents( __DIR__ . '/../../photos/' . $photos_sync->filename . '.webp' ) );
+        print '- Using compressed webp data' . "\n";
+      } else {
+        $imagick->readImage( __DIR__ . '/../../photos/' . $photos_sync->filename );
+        $imagick->resizeImage( 1920, 1920, \Imagick::FILTER_CUBIC, 0, true );
+        $imagick->cropImage( 1920, 1080, 0, $imagick->getImageHeight() / 2 - 540);
+        $imagick->setImageFormat( 'webp' );
+        $imagick->setOption( 'webp:method', '6' );
+        $imagick->writeImage( __DIR__ . '/../../photos/' . $photos_sync->filename . '.webp' );
+        $photos_sync->src = 'data:image/webp;base64,' . base64_encode( $imagick->getImageBlob() );
+        $imagick->clear();
+        print '- Created new webp data' . "\n";
+      }
+
+      array_unshift( $photos_sync->ignore, $photos_sync->filename );
+      if ( 10 < count( $photos_sync->ignore ) ) $photos_sync->ignore = array_slice( $photos_sync->ignore, 0, 10 );
+      print '- Updated ignore list' . "\n";
+
+      file_put_contents( __DIR__ . '/../public/sync/photo.json', json_encode( $photos_sync ) );
+      print '- Updated photo.json file' . "\n";
+
+      $time_exec = time() - $time_init;
+
+      $wait = 30 - $time_exec;
+      if ( 0 < $wait ) {
+        print 'Next run in ' . $wait . ' seconds' . "\n";
+        sleep( $wait );
+        $exec = true;
+      }
+    }
+  }
+}

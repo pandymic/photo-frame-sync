@@ -1,0 +1,7 @@
+# Ignore evyerthing in root except src folder and select files
+/*
+!/src
+!/.gitignore
+!/readme.md
+/src/public/sync/*
+!/src/public/sync/readme.md
