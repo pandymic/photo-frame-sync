@@ -263,7 +263,7 @@ var frameData = {
     
     if ( false !== frameData.photo.updated ) {
 
-      var nextPhoto = new Image(), value = document.querySelector( 'div.wrapper.value' ), active = document.querySelector( 'div.wrapper.active' );
+      var nextPhoto = new Image(), prev = document.querySelector( 'div.wrapper.prev' ), active = document.querySelector( 'div.wrapper.active' );
       nextPhoto.addEventListener( 'load', function() { 
         setTimeout( function() {
           frameData.photo.update();
@@ -274,24 +274,24 @@ var frameData = {
       
       frameData.preload.appendChild( nextPhoto );
 
-      value.style.display = 'none';
+      prev.style.display = 'none';
 
-      value.childNodes[0].remove();
-      value.appendChild( frameData.preload.childNodes[0] );
+      prev.childNodes[0].remove();
+      prev.appendChild( frameData.preload.childNodes[0] );
 
-      value.style.opacity = 0;
-      value.classList.remove( 'last' );
-      value.classList.add( 'active' );
+      prev.style.opacity = 0;
+      prev.classList.remove( 'prev' );
+      prev.classList.add( 'active' );
 
-      active.classList.add( 'last' );
+      active.classList.add( 'prev' );
       active.classList.remove( 'active' );
 
       setTimeout( function() {
 
-        value.style.display = 'block';
+        prev.style.display = 'block';
 
         setTimeout( function() {
-          value.style.opacity = 1;
+          prev.style.opacity = 1;
         }, 125 );
 
       }, 125 );
@@ -402,7 +402,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 
 <div class="preload"></div>
 
-<div class="wrapper value"><img src="<?php print (string)$photos_first_src; ?>"></div>
+<div class="wrapper prev"><img src="<?php print (string)$photos_first_src; ?>"></div>
 <div class="wrapper active"><img src="<?php print (string)$photos_first_src; ?>"></div>
 
 <div class="info hidden">
