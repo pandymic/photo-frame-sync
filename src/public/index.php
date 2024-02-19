@@ -41,6 +41,18 @@ if ( isset( $_GET['action'] ) ) {
       $response = (object)[ 'html' => $html ];
 
       break;
+    case 'countdownUpdate':
+
+      $countdown_conf = include __DIR__ . '/../../etc/countdown.conf';
+
+      if ( false !== $countdown_conf ) {
+        $html = strval( $countdown_conf );
+      } else {
+        $html = '';
+      }
+      $response = (object)[ 'html' => $html ];
+
+      break;
   }
 
   http_response_code( 200 );
@@ -171,18 +183,18 @@ body {
 
 var frameData = {
   photo: {
-    last: <?php print json_encode( (string)$photos_first ); ?>,
+    value: <?php print json_encode( (string)$photos_first ); ?>,
     updated: false,
     update: function() {
 
-      fetch( './index.php?action=checkPhotoUpdate&photoLast=' + encodeURIComponent( frameData.photo.last ) )
+      fetch( './index.php?action=checkPhotoUpdate&photoLast=' + encodeURIComponent( frameData.photo.value ) )
       .then( function( response ) {
         return response.json();
       } )
       .then( function( result ) {
         if ( result.filename ) {
 
-          if ( result.filename === frameData.photo.last ) {
+          if ( result.filename === frameData.photo.value ) {
 
             setTimeout( function() {
               frameData.photo.update();
@@ -190,7 +202,7 @@ var frameData = {
 
           } else {
 
-            frameData.photo.last = result.filename;
+            frameData.photo.value = result.filename;
             frameData.photo.updated = result.src;
 
           }
@@ -200,21 +212,38 @@ var frameData = {
     }
   },
   time: {
-    last: '',
+    value: '',
     updated: false,
     update: function() {
       var date = new Date();
       var timeCurrent = date.getHours().toString() + ':' + date.getMinutes().toString().padStart( 2, '0' );
 
-      if ( timeCurrent !== frameData.time.last ) {
-        frameData.time.last = timeCurrent;
+      if ( timeCurrent !== frameData.time.value ) {
+        frameData.time.value = timeCurrent;
         frameData.time.updated = true;
       }
       setTimeout( frameData.time.update, 100 );
     }
   },
+  countdown: {
+    value: '',
+    updated: false,
+    update: function() {
+      fetch( './index.php?action=countdownUpdate' )
+      .then( function( response ) {
+        return response.json();
+      } )
+      .then( function( result ) {
+        if ( result.html !== frameData.countdown.value ) {
+          frameData.countdown.value = result.html;
+          frameData.countdown.updated = true;
+        }
+        setTimeout( frameData.countdown.update, 60000 );
+      } );
+    }
+  },
   weather: {
-    last: '',
+    value: '',
     updated: false,
     update: function() {
       fetch( './index.php?action=weatherUpdate' )
@@ -222,8 +251,8 @@ var frameData = {
         return response.json();
       } )
       .then( function( result ) {
-        if ( result.html !== frameData.weather.last ) {
-          frameData.weather.last = result.html;
+        if ( result.html !== frameData.weather.value ) {
+          frameData.weather.value = result.html;
           frameData.weather.updated = true;
         }
         setTimeout( frameData.weather.update, 60000 );
@@ -234,7 +263,7 @@ var frameData = {
     
     if ( false !== frameData.photo.updated ) {
 
-      var nextPhoto = new Image(), last = document.querySelector( 'div.wrapper.last' ), active = document.querySelector( 'div.wrapper.active' );
+      var nextPhoto = new Image(), value = document.querySelector( 'div.wrapper.value' ), active = document.querySelector( 'div.wrapper.active' );
       nextPhoto.addEventListener( 'load', function() { 
         setTimeout( function() {
           frameData.photo.update();
@@ -245,24 +274,24 @@ var frameData = {
       
       frameData.preload.appendChild( nextPhoto );
 
-      last.style.display = 'none';
+      value.style.display = 'none';
 
-      last.childNodes[0].remove();
-      last.appendChild( frameData.preload.childNodes[0] );
+      value.childNodes[0].remove();
+      value.appendChild( frameData.preload.childNodes[0] );
 
-      last.style.opacity = 0;
-      last.classList.remove( 'last' );
-      last.classList.add( 'active' );
+      value.style.opacity = 0;
+      value.classList.remove( 'last' );
+      value.classList.add( 'active' );
 
       active.classList.add( 'last' );
       active.classList.remove( 'active' );
 
       setTimeout( function() {
 
-        last.style.display = 'block';
+        value.style.display = 'block';
 
         setTimeout( function() {
-          last.style.opacity = 1;
+          value.style.opacity = 1;
         }, 125 );
 
       }, 125 );
@@ -270,12 +299,17 @@ var frameData = {
     
     if ( false !== frameData.time.updated ) {
       frameData.time.updated = false;
-      frameData.time.element.innerHTML = frameData.time.last;
+      frameData.time.element.innerHTML = frameData.time.value;
+    }
+    
+    if ( false !== frameData.countdown.updated ) {
+      frameData.countdown.updated = false;
+      frameData.countdown.element.innerHTML = frameData.countdown.value;
     }
     
     if ( false !== frameData.weather.updated ) {
       frameData.weather.updated = false;
-      frameData.weather.element.innerHTML = frameData.weather.last;
+      frameData.weather.element.innerHTML = frameData.weather.value;
     }
     
     window.requestAnimationFrame( frameData.render );
@@ -340,6 +374,9 @@ document.addEventListener( 'DOMContentLoaded', function() {
   frameData.time.element = document.querySelector( 'div.time' );
   frameData.time.update();
 
+  frameData.countdown.element = document.querySelector( 'div.countdown' );
+  frameData.countdown.update();
+
   frameData.weather.element = document.querySelector( 'div.weather' );
   frameData.weather.update();
   
@@ -365,7 +402,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 
 <div class="preload"></div>
 
-<div class="wrapper last"><img src="<?php print (string)$photos_first_src; ?>"></div>
+<div class="wrapper value"><img src="<?php print (string)$photos_first_src; ?>"></div>
 <div class="wrapper active"><img src="<?php print (string)$photos_first_src; ?>"></div>
 
 <div class="info hidden">
