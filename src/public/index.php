@@ -41,12 +41,12 @@ if ( isset( $_GET['action'] ) ) {
       $response = (object)[ 'html' => $html ];
 
       break;
-    case 'countdownUpdate':
+    case 'greetingUpdate':
 
-      $countdown_conf = include __DIR__ . '/../../etc/countdown.conf';
+      $greeting_conf = include __DIR__ . '/../../etc/greeting.conf';
 
-      if ( false !== $countdown_conf ) {
-        $html = strval( $countdown_conf );
+      if ( false !== $greeting_conf ) {
+        $html = strval( $greeting_conf );
       } else {
         $html = '';
       }
@@ -166,11 +166,11 @@ body {
 .info .weather img {
   height: 5vh;
   aspect-ratio: 1;
-  filter: grayscale(1);
+  filter: grayscale(1) drop-shadow(1px 1px 2.5px rgb(0 0 0 / 0.5));
   order: -1;
 }
 
-.info .countdown {
+.info .greeting {
   display: flex;
   justify-content: flex-end;
   align-items: stretch;
@@ -225,20 +225,20 @@ var frameData = {
       setTimeout( frameData.time.update, 100 );
     }
   },
-  countdown: {
+  greeting: {
     value: '',
     updated: false,
     update: function() {
-      fetch( './index.php?action=countdownUpdate' )
+      fetch( './index.php?action=greetingUpdate' )
       .then( function( response ) {
         return response.json();
       } )
       .then( function( result ) {
-        if ( result.html !== frameData.countdown.value ) {
-          frameData.countdown.value = result.html;
-          frameData.countdown.updated = true;
+        if ( result.html !== frameData.greeting.value ) {
+          frameData.greeting.value = result.html;
+          frameData.greeting.updated = true;
         }
-        setTimeout( frameData.countdown.update, 60000 );
+        setTimeout( frameData.greeting.update, 60000 );
       } );
     }
   },
@@ -302,9 +302,9 @@ var frameData = {
       frameData.time.element.innerHTML = frameData.time.value;
     }
     
-    if ( false !== frameData.countdown.updated ) {
-      frameData.countdown.updated = false;
-      frameData.countdown.element.innerHTML = frameData.countdown.value;
+    if ( false !== frameData.greeting.updated ) {
+      frameData.greeting.updated = false;
+      frameData.greeting.element.innerHTML = frameData.greeting.value;
     }
     
     if ( false !== frameData.weather.updated ) {
@@ -374,8 +374,8 @@ document.addEventListener( 'DOMContentLoaded', function() {
   frameData.time.element = document.querySelector( 'div.time' );
   frameData.time.update();
 
-  frameData.countdown.element = document.querySelector( 'div.countdown' );
-  frameData.countdown.update();
+  frameData.greeting.element = document.querySelector( 'div.greeting' );
+  frameData.greeting.update();
 
   frameData.weather.element = document.querySelector( 'div.weather' );
   frameData.weather.update();
@@ -407,8 +407,8 @@ document.addEventListener( 'DOMContentLoaded', function() {
 
 <div class="info hidden">
   <div class="time"></div>
-  <div class="countdown"></div> 
-  <div class="weather"></div> 
+  <div class="weather"></div>
+  <div class="greeting"></div>
 </div>
 
 </body>
