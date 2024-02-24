@@ -74,7 +74,7 @@
             frameData.weather.value = result.html;
             frameData.weather.updated = true;
           }
-          setTimeout( frameData.weather.update, 60000 );
+          setTimeout( frameData.weather.update, 900000 );
         } );
       }
     },

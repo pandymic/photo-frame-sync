@@ -112,16 +112,7 @@ Gets the greeting from a server-side configuration file called `greeting.conf`. 
 
 ### Assumptions & Notes
 
-#### OpenWeatherMap
+#### ~~OpenWeatherMap~~ MSC Open Data
 
-* A valid auth token must be provided to use the API.
-* This token is returned from a server-side configuration file called `openweathermap.conf`. It's assumed that the file is a valid PHP script with a `return` statement on its last line. It lives in the folder `/etc` relative to the project directory (i.e. `../../etc` relative to this script.)
-* The file returns an object as follows
-
-<pre>
-&lt;?php
-
-return (object)[
-  'appId' => '<i>API_KEY_OR_TOKEN_HERE</i>',
-];
-</pre>
+* OpenWeatherMap integration was replaced with Meteorological Service of Canada data pulled from the MSC Datamart.
+* No authentication is required to use the MSC data.

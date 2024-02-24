@@ -1,9 +1,134 @@
 <?php
 
-ini_set('display_errors', 0 );
-error_reporting( 0 );
+function map_icon_msc_to_wi( $code = false ) {
+
+  $wi_code = null;
+
+  if ( !filter_var( $code, FILTER_VALIDATE_INT ) ) {
+
+    $code = intval( $code );
+
+    switch( $code ) {
+      case 0:
+      case 1:
+        $wi_code = 'wi-day-sunny';
+        break;
+      case 2:
+      case 3:
+      case 4:
+      case 5:
+        $wi_code = 'wi-day-cloudy';
+        break;
+      case 6:
+        $wi_code = 'wi-day-showers';
+        break;
+      case 7:
+        $wi_code = 'wi-day-rain-mix';
+        break;
+      case 8:
+        $wi_code = 'wi-day-snow';
+        break;
+      case 9:
+        $wi_code = 'wi-day-storm-showers';
+        break;
+      case 10:
+        $wi_code = 'wi-cloud';
+        break;
+      case 11:
+      case 12:
+        $wi_code = 'wi-showers';
+        break;
+      case 13:
+        $wi_code = 'wi-rain';
+        break;
+      case 14:
+        $wi_code = 'wi-hail';
+        break;
+      case 15:
+        $wi_code = 'wi-rain-mix';
+        break;
+      case 16:
+      case 17:
+      case 18:
+        $wi_code = 'wi-snow';
+        break;
+      case 19:
+        $wi_code = 'wi-thunderstorm';
+        break;
+      case 20:
+      case 21:
+      case 22:
+      case 23:
+      case 24:
+        $wi_code = 'wi-cloudy';
+        break;
+      case 25:
+        $wi_code = 'wi-sandstorm';
+        break;
+      case 26:
+        $wi_code = 'wi-snow';
+        break;
+      case 27:
+        $wi_code = 'wi-snow';
+        break;
+      case 28:
+        $wi_code = 'wi-showers';
+        break;
+      case 30:
+        $wi_code = 'wi-night-clear';
+        break;
+      case 31:
+      case 32:
+      case 33:
+      case 34:
+      case 35:
+        $wi_code = 'wi-night-alt-cloudy';
+        break;
+      case 36:
+        $wi_code = 'wi-night-alt-showers';
+        break;
+      case 37:
+        $wi_code = 'wi-night-alt-rain-mix';
+        break;
+      case 38:
+        $wi_code = 'wi-night-alt-snow';
+        break;
+      case 39:
+        $wi_code = 'wi-night-alt-thunderstorm';
+        break;
+      case 40:
+        $wi_code = 'wi-sandstorm';
+        break;
+      case 41:
+      case 42:
+        $wi_code = 'wi-tornado';
+        break;
+      case 43:
+        $wi_code = 'wi-strong-wind';
+        break;
+      case 44:
+        $wi_code = 'wi-fire';
+        break;
+      case 45:
+        $wi_code = 'wi-sandstorm';
+        break;
+      case 46:
+      case 47:
+        $wi_code = 'wi-thunderstorm';
+        break;
+      case 48:
+        $wi_code = 'wi-tornado';
+        break;
+    }
+  }
+
+  return $wi_code;
+}
 
 if ( isset( $_GET['action'] ) ) {
+
+  ini_set('display_errors', 1 );
+  error_reporting( 1 );
 
   $response = false;
   switch( $_GET['action'] ) {
@@ -23,19 +148,20 @@ if ( isset( $_GET['action'] ) ) {
       break;
     case 'weatherUpdate':
 
-      $openweathermap_conf = include __DIR__ . '/../../etc/openweathermap.conf';
+      $html = '&ndash;&deg;C';
 
-      $ch = curl_init( 'https://api.openweathermap.org/data/2.5/weather?lat=49.1&lon=-122.7&units=metric&appid=' . urlencode( $openweathermap_conf->appId ) );
-      curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-      curl_setopt( $ch, CURLOPT_HTTPHEADER, [ 'Content-Type: application/json' ] );
-      $ch_response = curl_exec( $ch );
-      curl_close( $ch );
+      $msc_weather_data = simplexml_load_string( file_get_contents( 'https://dd.weather.gc.ca/citypage_weather/xml/BC/s0000866_e.xml' ) );
+      if ( false !== $msc_weather_data ) {
+        if ( $msc_weather_data instanceof SimpleXMLElement ) {
+          if ( isset( $msc_weather_data->currentConditions ) && $msc_weather_data->currentConditions instanceof SimpleXMLElement ) {
+  
+            $currentConditions = json_decode( json_encode( $msc_weather_data->currentConditions ), true );
 
-      $ch_json = json_decode( $ch_response );
-      if ( !is_null( $ch_json ) && isset( $ch_json->cod ) && 200 === $ch_json->cod ) {
-        $html = round( $ch_json->main->temp ) . '&deg;C ' . '<img src="https://openweathermap.org/img/wn/' . $ch_json->weather[0]->icon . '@2x.png">';
-      } else {
-        $html = '&ndash;&deg;C';
+            $html = (int)$currentConditions['temperature'] . '&deg;C ';
+            if ( is_string( $currentConditions['condition'] ) && is_string( $currentConditions['iconCode'] ) ) $html .= str_replace( '<svg', '<svg title="' . htmlentities( $currentConditions['condition'] ) . '"', preg_replace( '/^.*(<svg.+<\/svg>).*/s', '\1', file_get_contents( __DIR__ . '/weather-icons/svg/' . map_icon_msc_to_wi( $currentConditions['iconCode'] ) . '.svg' ) ) );
+  
+          }
+        }
       }
 
       $response = (object)[ 'html' => $html ];

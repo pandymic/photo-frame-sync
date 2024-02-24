@@ -22,28 +22,32 @@ body {
   right: 0;
   bottom: 0;
   left: 0;
+
+  img {
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
 }
 
-.wrapper.active {
-  transition: opacity 2.5s ease-out;
-  z-index: 1;
+.wrapper {
+
+  &.active {
+    transition: opacity 2.5s ease-out;
+    z-index: 1;
+  }
+
 }
 
 .preload {
   z-index: -1;
-}
-
-.wrapper img, 
-.preload img {
-  display: block;
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .info {
@@ -63,36 +67,39 @@ body {
 
   pointer-events: none;
   transition: opacity 250ms ease-out;
-}
 
-.info.hidden {
-  opacity: 0;
-}
+  &.hidden {
+    opacity: 0;
+  }
 
-.info .time {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  font-size: 12.5vh;
-}
+  .time {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    font-size: 12.5vh;
+  }
 
-.info .weather {
-  display: flex;
-  justify-content: flex-end;
-  align-items: stretch;
-  font-size: 5vh;
-}
+  .weather {
+    display: flex;
+    justify-content: flex-end;
+    align-items: stretch;
+    font-size: 5vh;
 
-.info .weather img {
-  height: 5vh;
-  aspect-ratio: 1;
-  filter: grayscale(1) drop-shadow(1px 1px 2.5px rgb(0 0 0 / 0.5));
-  order: -1;
-}
+    svg {
+      fill: currentcolor;
+      height: 5vh;
+      aspect-ratio: 1;
+      filter: grayscale(1) drop-shadow(1px 1px 2.5px rgb(0 0 0 / 0.5));
+      order: -1;
+    }
 
-.info .greeting {
-  display: flex;
-  justify-content: flex-end;
-  align-items: stretch;
-  font-size: 5vh;
+  }
+
+  .greeting {
+    display: flex;
+    justify-content: flex-end;
+    align-items: stretch;
+    font-size: 5vh;
+  }
+
 }
