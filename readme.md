@@ -4,7 +4,7 @@ The entire codebase consists of both a client-facing and server-side components.
 
 ## Server Side
 
-The server-side component is a single PHP script called *sync-daemon* run via the command-line live under the `/src/bin` directory. This script is meant to be registered and run as a systemd service unit. It runs persistently and handles the following in a continous loop (or until something goes wrong...)
+The server-side component is a single PHP script called *sync-daemon* run via the command-line live under the `/dist/bin` directory. This script is meant to be registered and run as a systemd service unit. It runs persistently and handles the following in a continous loop (or until something goes wrong...)
 
 1. Select an image at random from the photos folder.
     * If the image has been selected in the last *x* runs select another image.
@@ -25,14 +25,15 @@ The server-side component is a single PHP script called *sync-daemon* run via th
 * Optimized images are saved in the photos folder with the same filename but with the ".webp" extension
 
 #### Sync
+* Assumes there is a PHP 8.1 binary at `/opt/remi/php81/root/bin/php` *[Temporary]*
 * The current photo is stored as a base 64 encoded Data URL in the *photo.json*
-* The *photo.json* file lives in the folder `/src/photo-frame/sync` relative to the project directory (i.e. `../photo-frame/sync` relative to this script)
+* The *photo.json* file lives in the folder `/dist/photo-frame/sync` relative to the project directory (i.e. `../photo-frame/sync` relative to this script)
 * In addition to storing the latest photo this file includes a list of all previously used photos to avoid duplicates
 * This can be sliced to *x* length to allow photos to be selected from the pool at random except for any of the last *x* files.
-* For best performance the folder `/src/photo-frame/sync` can be mounted as a tmpfs volume. This keeps the data in memory and eliminates the need for constant disk reads and writes. Below is an example of the fstab entry
+* For best performance the folder `/dist/photo-frame/sync` can be mounted as a tmpfs volume. This keeps the data in memory and eliminates the need for constant disk reads and writes. Below is an example of the fstab entry
 
 <pre>
-none    <i>[path-to-project]</i>/src/photo-frame/sync    tmpfs    defaults,size=16m,uid=apache,gid=apache    0    0
+none    <i>[path-to-project]</i>/dist/photo-frame/sync    tmpfs    defaults,size=16m,uid=apache,gid=apache    0    0
 </pre>
 
 #### Service Unit (systemd)
@@ -50,8 +51,8 @@ ProtectSystem=full
 PrivateDevices=true
 ProtectHome=true
 NoNewPrivileges=true
-WorkingDirectory=<i>[path-to-project]</i>/src/bin
-ExecStart=/usr/bin/env php ./sync-daemon
+WorkingDirectory=<i>[path-to-project]</i>/dist/bin/
+ExecStart=/opt/remi/php81/root/bin/php ./photo-frame-sync
 Restart=always
 RestartSec=60
 
@@ -71,7 +72,7 @@ Data is polled at various intervals depending on the context. If the underlying 
 
 The script supports basic tap/click support. Single tap/click toggles the visibility of the information layer. Double tap/click toggles fullscreen mode.
 
-Below is an example of the .webmanifest file that can be used to register this single-page app as a PWA. (e.g. `/src/photo-frame/photo-frame-sync.webmanifest`)
+Below is an example of the .webmanifest file that can be used to register this single-page app as a PWA. (e.g. `/dist/photo-frame.webmanifest`)
 
 <pre>
 {
