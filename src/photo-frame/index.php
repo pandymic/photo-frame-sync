@@ -127,8 +127,8 @@ function map_icon_msc_to_wi( $code = false ) {
 
 if ( isset( $_GET['action'] ) ) {
 
-  ini_set('display_errors', 1 );
-  error_reporting( 1 );
+  ini_set('display_errors', 0 );
+  error_reporting( 0 );
 
   $response = false;
   switch( $_GET['action'] ) {
