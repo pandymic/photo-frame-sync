@@ -1,0 +1,17 @@
+{
+  "name": "Photo Frame",
+  "short_name": "Photo Frame",
+  "theme_color": "#50b0d5",
+  "background_color": "#50b0d5",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "scope": "/photo-frame/",
+  "start_url": "/photo-frame/",
+  "icons": [
+    {
+      "src": "/photo-frame/favicon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ]
+}

@@ -71,7 +71,7 @@ $photos_first_src = $photos_sync->src;
 
 <head>
 
-<link rel="manifest" href="/frame-sync.webmanifest">
+<link rel="manifest" href="../photo-frame.webmanifest">
 <link rel="icon" sizes="192x192" type="image/png" href="./favicon.png">
 
 <title>Synchronized Photo Frame</title>

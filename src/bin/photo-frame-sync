@@ -7,7 +7,7 @@ error_reporting( 0 );
 $exec = true;
 $imagick = new \Imagick();
 
-$photos_sync = file_get_contents( __DIR__ . '/../public/sync/photo.json' );
+$photos_sync = file_get_contents( __DIR__ . '/../photo-frame/sync/photo.json' );
 if ( false !== $photos_sync ) {
   $photos_sync = json_decode( $photos_sync );
   if ( is_null( $photos_sync ) || !is_object( $photos_sync ) ) $photos_sync = (object)[ 'ignore' => [] ];
@@ -65,7 +65,7 @@ while ( true === $exec ) {
       if ( 10 < count( $photos_sync->ignore ) ) $photos_sync->ignore = array_slice( $photos_sync->ignore, 0, 10 );
       print '- Updated ignore list' . "\n";
 
-      file_put_contents( __DIR__ . '/../public/sync/photo.json', json_encode( $photos_sync ) );
+      file_put_contents( __DIR__ . '/../photo-frame/sync/photo.json', json_encode( $photos_sync ) );
       print '- Updated photo.json file' . "\n";
 
       $time_exec = time() - $time_init;

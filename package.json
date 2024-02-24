@@ -12,6 +12,7 @@
   },
   "homepage": "https://github.com/pandymic/photo-frame-sync#readme",
   "devDependencies": {
+    "fancy-log": "^2.0.0",
     "gulp": "^4.0.2"
   }
 }
