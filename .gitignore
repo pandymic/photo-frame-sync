@@ -1,7 +1,13 @@
-# Ignore evyerthing in root except src folder and select files
 /*
-!/src
 !/.gitignore
+!/composer.json
+!/dist/
+/dist/*
+!/etc
+/etc/*
+!/gulpfile.js
+/node_modules/
+!/package.json
 !/readme.md
-/src/public/sync/*
-!/src/public/sync/readme.md
+!/src
+/vendor/

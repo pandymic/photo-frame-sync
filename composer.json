@@ -1,0 +1,12 @@
+{
+    "name": "pandymic/photo-frame-sync",
+    "description": "Photo frame progressive web application with time, temperature, and greeting display. Images are synchronized across all sessions.",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Michal Pandyra",
+            "email": "mike@pandymic.com"
+        }
+    ],
+    "require": {}
+}

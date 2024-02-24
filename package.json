@@ -1,0 +1,17 @@
+{
+  "name": "photo-frame-sync",
+  "version": "1.0.0",
+  "description": "Photo frame progressive web application with time, temperature, and greeting display. Images are synchronized across all sessions.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pandymic/photo-frame-sync.git"
+  },
+  "author": "Michal Pandyra <mike@pandymic.com>",
+  "bugs": {
+    "url": "https://github.com/pandymic/photo-frame-sync/issues"
+  },
+  "homepage": "https://github.com/pandymic/photo-frame-sync#readme",
+  "devDependencies": {
+    "gulp": "^4.0.2"
+  }
+}
