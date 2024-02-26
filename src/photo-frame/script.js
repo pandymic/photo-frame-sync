@@ -1,16 +1,17 @@
 ( () => {
   const frameData = {
     scriptArguments: Object.fromEntries( new URL( document.currentScript.src ).searchParams ),
+    mode: 'standard',
     photo: {
       value: null,
       updated: false,
       update: () => {
 
         fetch( './index.php?action=checkPhotoUpdate&photoLast=' + encodeURIComponent( frameData.photo.value ) )
-        .then( function( response ) {
+        .then( response => {
           return response.json();
         } )
-        .then( function( result ) {
+        .then( result => {
           if ( result.filename ) {
 
             if ( result.filename === frameData.photo.value ) {
@@ -49,10 +50,10 @@
       updated: false,
       update: () => {
         fetch( './index.php?action=greetingUpdate' )
-        .then( function( response ) {
+        .then( response => {
           return response.json();
         } )
-        .then( function( result ) {
+        .then( result => {
           if ( result.html !== frameData.greeting.value ) {
             frameData.greeting.value = result.html;
             frameData.greeting.updated = true;
@@ -66,10 +67,10 @@
       updated: false,
       update: () => {
         fetch( './index.php?action=weatherUpdate' )
-        .then( function( response ) {
+        .then( response => {
           return response.json();
         } )
-        .then( function( result ) {
+        .then( result => {
           if ( result.html !== frameData.weather.value ) {
             frameData.weather.value = result.html;
             frameData.weather.updated = true;
@@ -139,7 +140,7 @@
       handler: () => {
 
         frameData.tap.count++;
-
+  
         if ( 'undefined' !== typeof frameData.tap.timeout ) {
           clearTimeout( frameData.tap.timeout );
           frameData.tap.timeout = undefined;
@@ -166,7 +167,6 @@
             frameData.tap.timeout = undefined;
 
           }, 225 );
-
         }
 
       }
@@ -183,8 +183,13 @@
 
   document.addEventListener( 'DOMContentLoaded', () => {
 
+    if ( 3 < window.location.hash.length && '#!/' === window.location.hash.substring( 0, 3 ) ) {
+      frameData.mode = window.location.hash.substring( 3 );
+      window.history.replaceState( undefined, document.title, window.location.pathname );
+    }
+
     frameData.photo.value = frameData.scriptArguments.photo;
-    console.dir( frameData.photo );
+    console.dir( frameData );
 
     frameData.preload = document.querySelector( 'div.preload' );
     setTimeout( () => {
@@ -204,15 +209,23 @@
     
     window.requestAnimationFrame( frameData.render );
 
-    document.body.addEventListener( 'click', function( e ) {
-      e.preventDefault();
-      frameData.tap.handler();
-    } );
+    if ( 'screensaver' === frameData.mode ) {
 
-    document.body.addEventListener( 'touchstart', function( e ) {
-      e.preventDefault();
-      frameData.tap.handler();
-    }, { passive: false } );
+      frameData.info.classList.remove( 'hidden' );
+
+    } else {
+
+      document.body.addEventListener( 'click', e => {
+        e.preventDefault();
+        frameData.tap.handler();
+      } );
+  
+      document.body.addEventListener( 'touchstart', e => {
+        e.preventDefault();
+        frameData.tap.handler();
+      }, { passive: false } );
+
+    }
 
   } );
 } )();

@@ -4,7 +4,7 @@ function map_icon_msc_to_wi( $code = false ) {
 
   $wi_code = null;
 
-  if ( !filter_var( $code, FILTER_VALIDATE_INT ) ) {
+  if ( filter_var( $code, FILTER_VALIDATE_INT ) ) {
 
     $code = intval( $code );
 
@@ -120,10 +120,13 @@ function map_icon_msc_to_wi( $code = false ) {
         $wi_code = 'wi-tornado';
         break;
     }
+
   }
 
   return $wi_code;
 }
+
+$now = time();
 
 if ( isset( $_GET['action'] ) ) {
 
@@ -150,18 +153,36 @@ if ( isset( $_GET['action'] ) ) {
 
       $html = '&ndash;&deg;C';
 
-      $msc_weather_data = simplexml_load_string( file_get_contents( 'https://dd.weather.gc.ca/citypage_weather/xml/BC/s0000866_e.xml' ) );
-      if ( false !== $msc_weather_data ) {
-        if ( $msc_weather_data instanceof SimpleXMLElement ) {
-          if ( isset( $msc_weather_data->currentConditions ) && $msc_weather_data->currentConditions instanceof SimpleXMLElement ) {
-  
-            $currentConditions = json_decode( json_encode( $msc_weather_data->currentConditions ), true );
+      $weather_cached = json_decode( file_get_contents( __DIR__ . '/sync/weather.json' ), true );
+      if ( false !== $weather_cached && is_array( $weather_cached ) && isset( $weather_cached['expires'] ) && $weather_cached['expires'] > $now ) {
+        $weather = $weather_cached['data'];
+      } else {
+        $msc_weather_data = simplexml_load_string( file_get_contents( 'https://dd.weather.gc.ca/citypage_weather/xml/BC/s0000866_e.xml' ) );
+        if ( false !== $msc_weather_data ) {
+          if ( $msc_weather_data instanceof SimpleXMLElement ) {
+            if ( isset( $msc_weather_data->currentConditions ) && $msc_weather_data->currentConditions instanceof SimpleXMLElement ) {
+    
+              $weather = json_decode( json_encode( $msc_weather_data->currentConditions ), true );
 
-            $html = (int)$currentConditions['temperature'] . '&deg;C ';
-            if ( is_string( $currentConditions['condition'] ) && is_string( $currentConditions['iconCode'] ) ) $html .= str_replace( '<svg', '<svg title="' . htmlentities( $currentConditions['condition'] ) . '"', preg_replace( '/^.*(<svg.+<\/svg>).*/s', '\1', file_get_contents( __DIR__ . '/weather-icons/svg/' . map_icon_msc_to_wi( $currentConditions['iconCode'] ) . '.svg' ) ) );
-  
+              if ( empty( $weather['condition'] ) && !empty( $weather_cached['data']['condition'] ) ) $weather['condition'] = $weather_cached['data']['condition'];
+              if ( empty( $weather['iconCode'] ) && !empty( $weather_cached['data']['iconCode'] ) ) $weather['iconCode'] = $weather_cached['data']['iconCode'];
+
+              $weather_cached = (object)[
+                'expires' => $now + 900,
+                'data' => $weather,
+              ];
+              file_put_contents( __DIR__ . '/sync/weather.json', json_encode( $weather_cached ) );
+    
+            }
           }
         }
+      }
+
+      if ( isset( $weather ) ) {
+  
+        $html = (int)$weather['temperature'] . '&deg;C';
+        if ( is_string( $weather['iconCode'] ) ) $html .= ' ' . str_replace( '<svg', '<svg title="' . ( !empty( $weather['condition'] ) ? htmlentities( $weather['condition'] ) : '' ) . '"', preg_replace( '/^.*(<svg.+<\/svg>).*/s', '\1', file_get_contents( __DIR__ . '/weather-icons/svg/' . map_icon_msc_to_wi( $weather['iconCode'] ) . '.svg' ) ) );
+
       }
 
       $response = (object)[ 'html' => $html ];
