@@ -60,11 +60,11 @@
   }
 }
 
-@function png( $name ) {
-  /* Don't use before the $png variable is availble globally. */
-  @if meta.global-variable-exists( $png ) {
-    @if meta.type-of( $png ) == map {
-      $data: map.get( $png, $name );
+@function img( $name ) {
+  /* Don't use before the $img variable is availble globally. */
+  @if meta.global-variable-exists( $img ) {
+    @if meta.type-of( $img ) == map {
+      $data: map.get( $img, $name );
       @if meta.type-of( $data ) == string {
         @return btoa( $data );
       } @else {
@@ -74,6 +74,6 @@
       @warn "Data is invalid type.";
     }
   } @else {
-    @warn "Global $png variable does not exist.";
+    @warn "Global $img variable does not exist.";
   }
 }
