@@ -1,0 +1,79 @@
+@use "sass:list";
+@use "sass:map";
+@use 'sass:math';
+@use 'sass:meta';
+@use 'sass:string';
+
+@function str-replace($string, $search, $replace: '') {
+  $index: string.index($string, $search);
+  @if $index {
+    @return string.slice($string, 1, $index - 1) + $replace + str-replace(string.slice($string, $index + string.length($search)), $search, $replace);
+  }
+  @return $string;
+}
+
+@function btoa( $string: "" ) {
+  @if meta.function-exists( "pandymic-libsass-btoa" ) {
+    @return pandymic-libsass-btoa($string);
+  }
+  @warn "Base64 encoding of strings depends on SASS engine experimental LibSass `functions` support. The `pandymic-libsass-btoa` function must be declared in the gulpfile.";
+  @return $string;
+}
+
+@function svg-add( $svg, $default: #000 ) {
+  $map: (
+    "default": str-replace($svg,"currentColor",$default),
+    "currentColor": $svg
+  );
+  @if meta.global-variable-exists( $colors ) {
+    @if meta.type-of( $colors ) == map {
+      @each $color, $value in $colors {
+        $map: map-merge( $map, ( $color: str-replace($svg,"currentColor",$value) ) );
+      }
+    }
+  }
+  @return $map;
+}
+
+@function svg( $name, $color: "default" ) {
+  /* Don't use before the $svg variable is availble globally. */
+  @if meta.global-variable-exists( $svg ) {
+    @if meta.type-of( $svg ) == map {
+      $return: false;
+      $data: map.get( $svg, $name );
+      @if meta.type-of( $data ) == map {
+        $return: map.get( $data, $color );
+      }
+      @if meta.type-of( $data ) == string {
+        $return: $data;
+      }
+      @if $return {
+        @return btoa( $return );
+      } @else {
+        @warn "Data is invalid type.";
+      }
+    } @else {
+      @warn "Data is invalid type.";
+    }
+  } @else {
+    @warn "Global $svg variable does not exist.";
+  }
+}
+
+@function png( $name ) {
+  /* Don't use before the $png variable is availble globally. */
+  @if meta.global-variable-exists( $png ) {
+    @if meta.type-of( $png ) == map {
+      $data: map.get( $png, $name );
+      @if meta.type-of( $data ) == string {
+        @return btoa( $data );
+      } @else {
+        @warn "Data is invalid type.";
+      }
+    } @else {
+      @warn "Data is invalid type.";
+    }
+  } @else {
+    @warn "Global $png variable does not exist.";
+  }
+}

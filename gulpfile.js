@@ -24,7 +24,7 @@ gulp.task( 'style', () => {
       outputStyle: 'compressed',
       functions: {
         // Base64 encode strings for data url's within sass files.
-        'btoa($string)': function(string) {
+        'pandymic-libsass-btoa($string)': function(string) {
           string.setValue( Buffer.from( string.getValue() ).toString( 'base64' ) );
           return string;
         }
